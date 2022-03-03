@@ -10,7 +10,7 @@ const path           = require('path');
 const fs             = require('fs');
 
 // configuration ===========================================
-let port = process.env.PORT || 3000; // set our port
+let port = process.env.PORT || 4040; // set our port
 app.use(bodyParser.json()); // for parsing application/json
 app.use(express.static(__dirname + '/client')); // set the static files location /public/img will be /img for users
 
