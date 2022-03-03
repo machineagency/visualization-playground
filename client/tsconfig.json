@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "es2020",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": true,
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "allowUmdGlobalAccess": true
+  },
+  "files": [
+      "main.ts", "verso.ts", "ui-root.tsx", "program-pane.tsx"
+  ]
+}
