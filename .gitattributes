@@ -1,8 +1,2 @@
 client/lib/* -linguist-detectable
-
 client/lib/* linguist-vendored
-axidraw/* linguist-vendored
-axidraw/pyaxidraw/* linguist-vendored
-axidraw/axicli/* linguist-vendored
-axidraw/test/* linguist-vendored
-
