@@ -1,5 +1,5 @@
 import { VisualizationSpace } from './visualization-space.js'
-// import { Interpreter } from './interpreter.js'
+import { Interpreter } from './interpreter.js'
 import { ExampleToolpaths } from './example-toolpaths.js'
 
 const createExampleViz = () => {
