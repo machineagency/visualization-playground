@@ -1,11 +1,11 @@
-export type EbbInstruction = string;
-export type GcodeInstruction = string;
+export type EBB = string;
+export type GCode = string;
 export interface Toolpath<InstrType> {
     instructions: InstrType[];
 }
 
 export class ExampleToolpaths {
-    public static ebbSignature : Toolpath<EbbInstruction> = {
+    public static ebbSignature : Toolpath<EBB> = {
         instructions : [
             'EM,1,1',
             'SM,26,-13,74',
@@ -449,7 +449,7 @@ export class ExampleToolpaths {
         ]
     };
 
-    public static ebbBox : Toolpath<EbbInstruction> = {
+    public static ebbBox : Toolpath<EBB> = {
         instructions: [
             'EM,1,1',
             'SM,26,34,67',
