@@ -1,6 +1,6 @@
 import { VisualizationSpace } from './visualization-space.js'
 import { Interpreter } from './interpreter.js'
-import { ExampleToolpaths } from './example-toolpaths.js'
+import { ExampleToolpaths, Toolpath, EBB, GCode } from './example-toolpaths.js'
 
 const createExampleViz = () => {
     let geometryBox = new THREE.BoxBufferGeometry(100, 150, 20);
@@ -74,7 +74,10 @@ const createCoolViz = () => {
 const main = () => {
     const vs = new VisualizationSpace();
     const vizGroup = createExampleViz();
-    vs.addVizWithName(vizGroup, 'Maja\'s Viz');
+    // vs.addVizWithName(vizGroup, 'Maja\'s Viz');
+    const someToolpath = ExampleToolpaths.ebbBox;
+    const toolpathViz = Interpreter.basicViz(someToolpath);
+    vs.addVizWithName(toolpathViz, 'Basic Path Viz');
 };
 
 window.onload = function() {
