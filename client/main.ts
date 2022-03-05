@@ -1,4 +1,6 @@
 import { VisualizationSpace } from './visualization-space.js'
+// import { Interpreter } from './interpreter.js'
+import { ExampleToolpaths } from './example-toolpaths.js'
 
 const createExampleViz = () => {
     let geometryBox = new THREE.BoxBufferGeometry(100, 150, 20);
