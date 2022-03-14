@@ -67,6 +67,32 @@ const createExampleViz = () => {
     return group;
 };
 
+//PointsMaterial test
+const test = () => {
+  const vertices = [];
+
+  for ( let i = 0; i < 10000; i ++ ) {
+
+  const x = THREE.MathUtils.randFloatSpread( 2000 );
+  const y = THREE.MathUtils.randFloatSpread( 2000 );
+  const z = THREE.MathUtils.randFloatSpread( 2000 );
+
+  vertices.push( x, y, z );
+
+  }
+//need to specify
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+
+  const material = new THREE.PointsMaterial( { color: 0xFF9900 } );
+
+  const points = new THREE.Points( geometry, material );
+  let group = new THREE.Group();
+
+  group.add( points);
+  return group;
+}
+
 const createCoolViz = () => {
     // TODO
 };
@@ -74,9 +100,13 @@ const createCoolViz = () => {
 const main = () => {
     const vs = new VisualizationSpace();
     const vizGroup = createExampleViz();
-    // vs.addVizWithName(vizGroup, 'Maja\'s Viz');
+    //vs.addVizWithName(vizGroup, 'Maja\'s Viz');
+    //const tester = test();
+    //vs.addVizWithName(tester, 'point test');
     const someToolpath = ExampleToolpaths.ebbBox;
-    const toolpathViz = Interpreter.basicViz(someToolpath);
+    //const someToolpath = ExampleToolpaths.ebbSignature;
+    //const toolpathViz = Interpreter.basicViz(someToolpath);
+    const toolpathViz = Interpreter.pointViz(someToolpath);
     vs.addVizWithName(toolpathViz, 'Basic Path Viz');
 };
 
