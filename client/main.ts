@@ -91,7 +91,68 @@ const test = () => {
 
   group.add( points);
   return group;
-}
+};
+
+const colorTest = () => {
+  let curves : THREE.LineCurve3[] = [];
+  // curves.push(new THREE.LineCurve3(
+  //               new THREE.Vector3(0,0,0), new THREE.Vector3(0,50,0)));
+  // curves.push(new THREE.LineCurve3(
+  //               new THREE.Vector3(0,50,0), new THREE.Vector3(0,100,0)));
+  // curves.push(new THREE.LineCurve3(
+  //               new THREE.Vector3(0,100,0), new THREE.Vector3(0,150,0)));
+
+for (let i = 0; i < 256; i++){
+  curves.push(new THREE.LineCurve3(new THREE.Vector3(0,i*2,0), new THREE.Vector3(0,(i+1)*2,0)));
+};
+
+
+  //let color = new THREE.Color();
+  // color.lerpColors(new THREE.Color(0xe44242), new THREE.Color(0x3D85C6), 0.5);
+  //
+
+  let colors : THREE.Color[] = [];
+  for (let i = 0; i < 256; i++) {
+    colors.push(new THREE.Color("rgb(" + i + ", 255, 255)"));
+  };
+
+  console.log(colors)
+  // let material = new THREE.MeshToonMaterial({
+  //     color: color,
+  //     side: THREE.DoubleSide
+  // });
+
+  let materialR = new THREE.Color( 0xe44242);
+  materialR.lerpHSL(new THREE.Color(0x3D85C6), 0.5);
+
+  // let material = new THREE.MeshToonMaterial({
+  //     color: materialR,
+  //     side: THREE.DoubleSide
+  // });
+
+  let pathRadius = 0.25;
+  let geometries = curves.map((a) => {
+      return new THREE.TubeBufferGeometry(a, 64, pathRadius, 64, false);
+  });
+
+  //let colors = []; (for i = 0, i < 256, i++ )
+  //{ colors.push(new Color("rgb(" + i + ", 0, 0)"); };
+
+
+let meshes: THREE.Mesh[] = [];
+for (let i = 0; i < 256; i++) {
+  meshes.push(new THREE.Mesh(geometries[i], (new THREE.MeshToonMaterial({
+          color: colors[i],
+          side: THREE.DoubleSide}))));
+};
+  // let meshes = geometries.map((geom) => {
+  //     return new THREE.Mesh(geom,material);
+  // });
+  let wrapperGroup = new THREE.Group();
+  meshes.forEach((mesh) => wrapperGroup.add(mesh));
+  wrapperGroup.rotateX(Math.PI / 2);
+  return wrapperGroup;
+};
 
 const createCoolViz = () => {
     // TODO
@@ -103,11 +164,15 @@ const main = () => {
     //vs.addVizWithName(vizGroup, 'Maja\'s Viz');
     //const tester = test();
     //vs.addVizWithName(tester, 'point test');
+    //const tester = colorTest();
+    //vs.addVizWithName(tester, 'colour test');
     const someToolpath = ExampleToolpaths.ebbBox;
     //const someToolpath = ExampleToolpaths.ebbSignature;
     //const toolpathViz = Interpreter.basicViz(someToolpath);
-    const toolpathViz = Interpreter.pointViz(someToolpath);
+    // const toolpathViz = Interpreter.pointViz(someToolpath);
+    const toolpathViz = Interpreter.orderViz(someToolpath);
     vs.addVizWithName(toolpathViz, 'Basic Path Viz');
+
 };
 
 window.onload = function() {
