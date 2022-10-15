@@ -1,5 +1,5 @@
 import { VisualizationSpace } from './visualization-space.js'
-import { Interpreter } from './interpreter.js'
+import { VisualizationInterpreters } from './interpreter.js'
 import { ExampleToolpaths, Toolpath, EBB, GCode } from './example-toolpaths.js'
 
 const createExampleViz = () => {
@@ -161,16 +161,8 @@ const createCoolViz = () => {
 const main = () => {
     const vs = new VisualizationSpace();
     const vizGroup = createExampleViz();
-    //vs.addVizWithName(vizGroup, 'Maja\'s Viz');
-    //const tester = test();
-    //vs.addVizWithName(tester, 'point test');
-    //const tester = colorTest();
-    //vs.addVizWithName(tester, 'colour test');
-    const someToolpath = ExampleToolpaths.ebbBox;
-    //const someToolpath = ExampleToolpaths.ebbSignature;
-    //const toolpathViz = Interpreter.basicViz(someToolpath);
-    // const toolpathViz = Interpreter.pointViz(someToolpath);
-    const toolpathViz = Interpreter.orderViz(someToolpath);
+    const someToolpath = ExampleToolpaths.gears;
+    const toolpathViz = VisualizationInterpreters.gCodeOrderViz(someToolpath);
     vs.addVizWithName(toolpathViz, 'Basic Path Viz');
 
 };
