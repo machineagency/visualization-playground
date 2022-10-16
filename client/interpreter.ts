@@ -1,3 +1,4 @@
+/// <reference path="lib/three-types/index.d.ts" />
 import { Toolpath, GCode, EBB, ExampleToolpaths } from './example-toolpaths.js'
 
 type VizGroup = THREE.Group;
@@ -754,6 +755,9 @@ export class VisualizationInterpreters {
         };
 
         let opcode, opX, opY, opZ;
+        let positions: THREE.Vector3[] = [
+            new THREE.Vector3()
+        ];
         toolpath.instructions.forEach((instruction: string) => {
             opcode = findOpcode(instruction, opcodeRe);
             if (opcode === 'G0' || opcode === 'G1') {
@@ -764,6 +768,7 @@ export class VisualizationInterpreters {
 
               newPosition = new THREE.Vector3(opX, opY, opZ);
               moveCurve2 = new THREE.LineCurve3(currentPosition, newPosition);
+              positions.push(newPosition);
               toolpathCurves.push(moveCurve2);
               currentPosition = newPosition;
             }
@@ -788,54 +793,46 @@ export class VisualizationInterpreters {
           colors.push(new THREE.Color("rgb(" + Math.round(red) + "," + Math.round(grn)
                                         + "," + Math.round(blu) + ")"));
         };
+        
+        let positionsFlat = positions.map(vec => [vec.x, vec.y, vec.z]).flat();
+        let colorsFlat = colors.map(color => [color.r, color.g, color.b]).flat();
+        let lineGeom = new THREE.LineGeometry();
+        lineGeom.setPositions(positionsFlat);
+        lineGeom.setColors(colorsFlat);
 
-        //define the line
-        let pathRadius = 0.185;
-        let toolpathGeometries = toolpathCurves.map((curve) => {
-            return new THREE.TubeBufferGeometry(curve, 1, pathRadius, 4, false);
+        let material = new THREE.LineMaterial({
+            color: 0xffffff,
+            linewidth: 1, // in world units with size attenuation, pixels otherwise
+            vertexColors: true,
+            //resolution:  // to be set by renderer, eventually
+            // Hmmm the below vector works? It was never set on its own and
+            // crashed the browser
+            resolution: new THREE.Vector2(640, 480),
+            dashed: false,
         });
 
-        //draws the figure
-        let toolpathMeshes: THREE.Mesh[] = [];
-        for (let i = 0; i < toolpathCurves.length; i++) {
-          toolpathMeshes.push(new THREE.Mesh(toolpathGeometries[i], (new THREE.MeshToonMaterial({
-                  color: colors[i],
-                  side: THREE.DoubleSide}))));
-        };
+        let line = new THREE.Line2(lineGeom, material);
+        line.scale.set(1, 1, 1);
+        line.computeLineDistances();
 
-        let colorbar : THREE.LineCurve3[] = [];
-        for (let i = 0; i < toolpathCurves.length; i++) {
-            let colorBarLength = 200;
-            let gradientPosition = (i / toolpathCurves.length) * colorBarLength;
-            let step = (1 / toolpathCurves.length) * colorBarLength;
-            colorbar.push(new THREE.LineCurve3(
-                            new THREE.Vector3(gradientPosition,0,0),
-                            new THREE.Vector3(gradientPosition + step,0,0)));
-        };
-        let toolpathGroup = new THREE.Group();
-        toolpathMeshes.forEach((mesh) => toolpathGroup.add(mesh));
-
-        let colorbarGeometries = colorbar.map((curve) => {
-            return new THREE.TubeBufferGeometry(curve, 1, 1, 4, false);
-        });
-
-        let colorbarMeshes: THREE.Mesh[] = [];
-        for (let i = 0; i < toolpathCurves.length; i++) {
-          colorbarMeshes.push(new THREE.Mesh(colorbarGeometries[i], (new THREE.MeshToonMaterial({
-                  color: colors[i],
-                  side: THREE.DoubleSide}))));
-        };
-        let colorbarGroup = new THREE.Group();
-        colorbarMeshes.forEach((mesh) => colorbarGroup.add(mesh));
+        let colorBarLength = 200;
+        let colorbarPositions = toolpathCurves.map((_, i) => {
+           let x = (i / toolpathCurves.length) * colorBarLength;
+           return [x, 0, 0];
+        }).flat();
+        let colorbarGeom = new THREE.LineGeometry();
+        colorbarGeom.setPositions(colorbarPositions);
+        colorbarGeom.setColors(colorsFlat);
+        let colorbar = new THREE.Line2(colorbarGeom, material);
 
         let wrapperGroup = new THREE.Group() as VizGroup;
         const initialZDrop = 0.6996;
-        toolpathGroup.translateZ(-initialZDrop * SCALE_FACTOR);
-        // colorbarGroup.translateY(200 + 10);
-        colorbarGroup.translateY(-15);
+        line.translateZ(-initialZDrop * SCALE_FACTOR);
+        colorbar.translateY(200 + 10);
+        colorbar.translateY(-15);
 
-        toolpathMeshes.forEach(mesh => wrapperGroup.add(mesh));
-        colorbarMeshes.forEach(mesh => wrapperGroup.add(mesh));
+        wrapperGroup.add(line);
+        wrapperGroup.add(colorbar);
         wrapperGroup.rotateX(Math.PI / 2);
         return wrapperGroup;
     }
