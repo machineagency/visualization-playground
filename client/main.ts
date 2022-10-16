@@ -97,6 +97,41 @@ const calculateTimes = (irs: IR[]): IR[] => {
     return newIrs;
 }
 
+// FIXME: eventually remove need to toolpath
+const makeScrubber = (irs: IR[], tp: Toolpath<GCode>, vs: VisualizationSpace) => {
+    let finalIr = irs[irs.length - 1];
+    let finalTime = Math.ceil(finalIr.timestamp);
+    let slider = document.createElement('input');
+    slider.id = 'scrubber';
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = `${irs.length - 1}`;
+    slider.value = `${irs.length - 1}`;
+    slider.step = '1';
+    slider.oninput = (e: Event) => {
+        let timeDisplay = document.getElementById('time-display');
+        if (timeDisplay) {
+            let i = parseInt(slider.value);
+            let time = irs[i].timestamp;
+            let hours = Math.floor(time / 3600);
+            let minutes = Math.floor(time / 60);
+            let seconds = Math.round(((time % 60) * 10000) / 10000);
+            timeDisplay.innerText = `${minutes}m ${seconds}s - #${i}`;
+            vs.removeAllViz();
+            let clippedTp = {
+                instructions: tp.instructions.slice(0, i)
+            };
+            let viz = VisualizationInterpreters.gCodeOrderViz(clippedTp);
+            vs.addVizWithName(viz, 'idk man');
+        }
+    };
+    let controlsDom = document.getElementById('controls');
+    if (!controlsDom) {
+        throw Error('Could not find controls dom');
+    }
+    controlsDom.appendChild(slider);
+};
+
 const main = () => {
     const vs = new VisualizationSpace();
     const someToolpath = ExampleToolpaths.gears;
@@ -108,6 +143,7 @@ const main = () => {
     const irs = parseGCode(someToolpath);
     const irTimes = calculateTimes(irs);
     console.log(irTimes);
+    makeScrubber(irTimes, someToolpath, vs);
 };
 
 window.onload = function() {
