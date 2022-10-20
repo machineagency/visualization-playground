@@ -657,72 +657,79 @@ export class VisualizationInterpreters {
     }
 
     //G-Code
-    static gcodeColorViz(toolpath: Toolpath<GCode>) : VizGroup {
-        let moveCurves : THREE.LineCurve3[] = [];
-        let moveCurve: THREE.LineCurve3;
-        let curveMaterials: THREE.Material[] = [];
-        enum Colors {
-            Red = 0xe44242,
-            Green = 0x2ecc71
-        }
-        let currentColor = Colors.Green;
-        let currentPosition = new THREE.Vector3(0, 0, 0);
-        let newPosition = currentPosition.clone();
-        let tokens, opcode, duration, opX, opY, opZ, opF, material;
-        let posChange;
-        let materialColor = Colors.Green;
+    static gCodeColorViz(toolpath: Toolpath<GCode>) : VizGroup {
+        let toolpathCurves : THREE.LineCurve3[] = [];
+        //flag is 1 because of the z axis is flipped
+        let flag = 1;
+        let currentPosition = new THREE.Vector3();
+        let newPosition : THREE.Vector3;
+        let moveCurve2: THREE.LineCurve3;
+
         let opcodeRe = /(G[0-9]+|M[0-9]+)/;
-        let opXRe = /X(-?[0-9]+)/;
-        let opYRe = /Y(-?[0-9]+)/;
-        let opZRe = /Z(-?[0-9]+)/;
-        let opFRe = /F(-?[0-9]+)/;
+        let opXRe = /X(-?[0-9]+.[0-9]+)/;
+        let opYRe = /Y(-?[0-9]+.[0-9]+)/;
+        let opZRe = /Z(-?[0-9]+.[0-9]+)/;
+        let opFRe = /F(-?[0-9]+.[0-9]+)/;
         let findOpcode = (instruction: string, argRe: RegExp) => {
             let maybeArgResults = instruction.match(argRe);
             if (!maybeArgResults) { return ''; }
             return maybeArgResults[0];
         };
+        const SCALE_FACTOR = 25;
         let findArg = (instruction: string, argRe: RegExp, fallback: number) => {
             let maybeArgResults = instruction.match(argRe);
             if (!maybeArgResults || maybeArgResults.length < 2) {
                 return fallback;
             }
-            return parseInt(maybeArgResults[1]) || 0;
+            return parseFloat(maybeArgResults[1]) * SCALE_FACTOR || 0;
         };
+
+        let opcode, opX, opY, opZ;
+        let positions: THREE.Vector3[] = [
+            new THREE.Vector3()
+        ];
         toolpath.instructions.forEach((instruction: string) => {
             opcode = findOpcode(instruction, opcodeRe);
             if (opcode === 'G0' || opcode === 'G1') {
-                opX = findArg(instruction, opXRe, currentPosition.x),
-                opY = findArg(instruction, opYRe, currentPosition.y),
-                // Two negatives here because our coordinate basis is wonky
-                opZ = -findArg(instruction, opZRe, -currentPosition.z)
-                newPosition = new THREE.Vector3(opX, opY, opZ);
-                // Set color based on height
-                if (currentPosition.z === 0 && newPosition.z === 0) {
-                    currentColor = Colors.Red;
-                }
-                else {
-                    currentColor = Colors.Green;
-                }
-                materialColor = currentColor;
+              opX = findArg(instruction, opXRe, currentPosition.x),
+              opY = findArg(instruction, opYRe, currentPosition.y),
+              // Two negatives here because our coordinate basis is wonky
+              opZ = -findArg(instruction, opZRe, -currentPosition.z)
+
+              newPosition = new THREE.Vector3(opX, opY, opZ);
+              moveCurve2 = new THREE.LineCurve3(currentPosition, newPosition);
+              positions.push(newPosition);
+              toolpathCurves.push(moveCurve2);
+              currentPosition = newPosition;
             }
-            moveCurve = new THREE.LineCurve3(currentPosition, newPosition);
-            moveCurves.push(moveCurve);
-            currentPosition = newPosition;
-            material = new THREE.MeshToonMaterial({
-                color: materialColor,
-                side: THREE.DoubleSide
-            });
-            curveMaterials.push(material);
         });
-        let pathRadius = 0.25
-        let geometries = moveCurves.map((curve) => {
-            return new THREE.TubeBufferGeometry(curve, 64, pathRadius, 64, false);
+
+        let positionsFlat = positions.map(vec => [vec.x, vec.y, vec.z]).flat();
+        let color = positions.map(_ => [255, 255, 255]).flat();
+        let lineGeom = new THREE.LineGeometry();
+        lineGeom.setPositions(positionsFlat);
+        lineGeom.setColors(color);
+
+        let material = new THREE.LineMaterial({
+            color: 0xffffff,
+            linewidth: 1, // in world units with size attenuation, pixels otherwise
+            vertexColors: true,
+            //resolution:  // to be set by renderer, eventually
+            // Hmmm the below vector works? It was never set on its own and
+            // crashed the browser
+            resolution: new THREE.Vector2(640, 480),
+            dashed: false,
         });
-        let meshes = geometries.map((geom, idx) => {
-            return new THREE.Mesh(geom, curveMaterials[idx]);
-        });
+
+        let line = new THREE.Line2(lineGeom, material);
+        line.scale.set(1, 1, 1);
+        line.computeLineDistances();
+
         let wrapperGroup = new THREE.Group() as VizGroup;
-        meshes.forEach((mesh) => wrapperGroup.add(mesh));
+        const initialZDrop = 0.6996;
+        line.translateZ(-initialZDrop * SCALE_FACTOR);
+
+        wrapperGroup.add(line);
         wrapperGroup.rotateX(Math.PI / 2);
         return wrapperGroup;
     }

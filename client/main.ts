@@ -121,7 +121,7 @@ const makeScrubber = (irs: IR[], tp: Toolpath<GCode>, vs: VisualizationSpace) =>
             let clippedTp = {
                 instructions: tp.instructions.slice(0, i)
             };
-            let viz = VisualizationInterpreters.gCodeOrderViz(clippedTp);
+            let viz = VisualizationInterpreters.gCodeColorViz(clippedTp);
             vs.addVizWithName(viz, 'idk man');
         }
     };
@@ -134,11 +134,11 @@ const makeScrubber = (irs: IR[], tp: Toolpath<GCode>, vs: VisualizationSpace) =>
 
 const main = () => {
     const vs = new VisualizationSpace();
-    const someToolpath = ExampleToolpaths.gears;
+    const someToolpath = ExampleToolpaths.test1;
     const toolpathClipped: Toolpath<GCode> = {
         instructions: someToolpath.instructions.slice(500, 1000)
     };
-    const toolpathViz = VisualizationInterpreters.gCodeOrderViz(someToolpath);
+    const toolpathViz = VisualizationInterpreters.gCodeColorViz(someToolpath);
     vs.addVizWithName(toolpathViz, 'Basic Path Viz');
     const irs = parseGCode(someToolpath);
     const irTimes = calculateTimes(irs);
